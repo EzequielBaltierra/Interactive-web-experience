@@ -6,11 +6,10 @@ Project name: Interactive Web Experience
 
 This project is a front-end portfolio experience built with React and Vite that blends a 3D visual environment with a fortune-telling interaction. The product is intended to feel atmospheric, magical, and personal while emphasizing creative front-end craftsmanship. The current direction is a single-page interactive experience in which a user asks a question, selects a flower, and receives a narrative answer based on the question category and the flower choice.
 
-The repository currently contains the initial foundation for that concept:
-- a full-viewport 3D scene background
-- a glass-panel content overlay
+The repository currently contains the initial 3D scene foundation for that concept:
+- a full-viewport React Three Fiber canvas
 - a dark, ambient visual palette
-- animated 3D motion in the background environment
+- scene lighting and atmosphere managed by the 3D experience
 
 At this stage, the experience is intentionally a prototype concept rather than a finished commercial product.
 
@@ -133,8 +132,7 @@ The final narrative response should be more evocative than generic. It should re
 - Transitions should be smooth and intentional rather than abrupt
 
 ### Layout
-- The UI should overlay cleanly on the 3D canvas using a polished glass-effect or minimal framed panel
-- The main content card should support clear text hierarchy and guided interaction
+- Future interface elements should overlay cleanly on the 3D canvas without obscuring the active scene.
 
 ## 10. Acceptance Criteria
 

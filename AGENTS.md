@@ -66,9 +66,7 @@ When editing this project:
 
 ## Files of special importance
 - src/App.jsx — app-level flow and composition
-- src/components/ThreeScene.jsx — 3D canvas wrapper
-- src/scene/Experience.jsx — 3D scene setup and atmosphere
-- src/components/ProfileCard.jsx — content surface and overlay UI
+- src/components/ThreeScene.jsx — 3D scene wrapper
 - docs/PRD.md — product requirements and product intent
 
 ## Working style

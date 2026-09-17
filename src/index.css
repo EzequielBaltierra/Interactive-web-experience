@@ -21,7 +21,7 @@ body {
 .app {
   position: relative;
   min-height: 100vh;
-  padding: 1.5rem;
+  min-width: 320px;
   box-sizing: border-box;
   display: grid;
   place-items: center;
@@ -36,30 +36,6 @@ body {
 
 .three-scene canvas {
   display: block;
-}
-
-.profile-card {
-  position: relative;
-  z-index: 1;
-  max-width: 42rem;
-  width: min(100%, 42rem);
-  padding: 2rem;
-  background: rgb(17 24 39 / 78%);
-  border: 1px solid rgb(255 255 255 / 18%);
-  border-radius: 8px;
-  box-sizing: border-box;
-  backdrop-filter: blur(12px);
-}
-
-.profile-card__title {
-  margin: 0 0 0.75rem;
-  color: #ffffff;
-  font-size: 2rem;
-  line-height: 1.1;
-}
-
-.profile-card__text {
-  margin: 0;
-  color: #d1d5db;
-  font-size: 1rem;
+  width: 100% !important;
+  height: 100% !important;
 }
