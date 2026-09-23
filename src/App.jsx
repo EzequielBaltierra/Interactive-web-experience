@@ -1,9 +1,10 @@
-import ThreeScene from './components/ThreeScene.jsx'
+import GardenScene from './components/GardenScene.jsx'
+
 
 function App() {
   return (
     <main className="app">
-      <ThreeScene />
+      <GardenScene />
     </main>
   )
 }

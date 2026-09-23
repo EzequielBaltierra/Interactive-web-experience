@@ -26,3 +26,9 @@ coverage/
 *.njsproj
 *.sln
 *.sw?
+
+# Local project guidance and foundational documents
+[Aa][Gg][Ee][Nn][Tt][Ss].[Mm][Dd]
+/foundational/
+/docs/PRD.md
+/docs/codebase-review.md
