@@ -6,6 +6,7 @@ import {
 import { useRef } from 'react'
 import * as THREE from 'three'
 import { viewOffsets } from './cameraViews.js'
+import { advanceInspectionTransition, createInspectionTransition } from './inspectionTransition.js'
 
 const CAMERA_VIEW_LIMIT = 25
 const CAMERA_MIN_DISTANCE = 0.02
@@ -22,7 +23,7 @@ export default function CameraRigging({ view, getSelectedObject, pauseCameraFoll
   const objectWorldPosition = useRef(new THREE.Vector3())
   const targetPosition = useRef(new THREE.Vector3())
   const orbitalOffset = useRef(viewOffsets.main.clone())
-  const wasMovingFlower = useRef(false)
+  const inspectionTransition = useRef(null)
   const previousTargetPosition = useRef(new THREE.Vector3())
   const previousSelectedObject = useRef(null)
   const previousView = useRef(view)
@@ -45,36 +46,28 @@ export default function CameraRigging({ view, getSelectedObject, pauseCameraFoll
     const cameraModeChanged = previousCameraMode.current !== cameraMode
     const targetChanged = previousSelectedObject.current !== selectedObject
 
-    // Follow the lifted flower during its flight, then release control to orbiting.
-    if (cameraMode === 'orbital' && pickedFlower && (pickedFlower.moving || wasMovingFlower.current)) {
+    // Move directly to the final flower position, then release control to orbiting.
+    if (cameraMode === 'orbital' && pickedFlower?.moving) {
       const controls = orbitControlsRef.current
-      const distance = pickedFlower.distance
-      targetPosition.current.copy(targetLookAt.current)
-      targetPosition.current.y += distance
-      targetPosition.current.z += distance * 0.001 // Avoid the pole singularity at exactly top-down.
-      const blend = 1 - Math.exp(-5 * delta)
-      if (pickedFlower.moving) {
-        state.camera.position.lerp(targetPosition.current, blend)
-        controls.target.lerp(targetLookAt.current, blend)
-      } else {
-        state.camera.position.copy(targetPosition.current)
-        controls.target.copy(targetLookAt.current)
+      if (!inspectionTransition.current) {
+        inspectionTransition.current = createInspectionTransition(
+          state.camera, pickedFlower.focus, pickedFlower.distance,
+        )
       }
-      state.camera.lookAt(controls.target)
-      controls.update()
-      if (pickedFlower.moving && pickedFlower.flowerArrived
-        && state.camera.position.distanceToSquared(targetPosition.current) < 1e-8
-        && controls.target.distanceToSquared(targetLookAt.current) < 1e-8) {
+      const arrived = advanceInspectionTransition(
+        inspectionTransition.current, state.camera, controls.target, delta,
+      )
+      if (arrived && pickedFlower.flowerArrived) {
+        controls.update()
         onInspectionReady(pickedFlower.id)
       }
-      wasMovingFlower.current = pickedFlower.moving
       previousSelectedObject.current = selectedObject
       previousTargetPosition.current.copy(targetLookAt.current)
       previousView.current = view
       previousCameraMode.current = cameraMode
       return
     }
-    wasMovingFlower.current = false
+    inspectionTransition.current = null
 
     if (cameraMode === 'orbital' && targetChanged && !viewChanged) {
       orbitalOffset.current

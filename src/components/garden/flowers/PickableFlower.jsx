@@ -10,7 +10,7 @@ import {
 
 export default function PickableFlower({
   flower, flowerType, placement, objectId, setObjectRef, onSelect,
-  canDig, pickedFlower, onDragChange, onUproot, onArrive,
+  canDig, pickedFlower, onDragChange, onUproot, onArrive, onPetalProgress,
 }) {
   const rootRef = useRef(null)
   const canvas = useThree((state) => state.gl.domElement)
@@ -98,8 +98,12 @@ export default function PickableFlower({
     root.position.y = getLiftedFlowerY(current.rootY, current.startY, point.y)
     if (isFlowerClearOfSoil(root.position.y, bottomOffset, position[1])) {
       root.getWorldScale(worldScale)
+      // Pass the final bud position so the camera can take a fixed, direct path.
+      getInspectionRootPosition(root.parent, scratch.current.center.fromArray(centerPosition), scratch.current.target)
+      scratch.current.target.add(point.fromArray(focusPosition))
+      root.parent.localToWorld(scratch.current.target)
       releasePointer()
-      onUproot(objectId, Math.max(height * worldScale.y * 1.8, 0.4))
+      onUproot(objectId, Math.max(height * worldScale.y * 1.8, 0.4), scratch.current.target.toArray())
     }
   }
 
@@ -129,7 +133,12 @@ export default function PickableFlower({
       />
       {showParts ? (
         <Suspense fallback={<Clone object={flower} position={modelOffset} scale={scale} dispose={null} />}>
-          <FlowerParts flowerType={flowerType} position={modelOffset} scale={scale} />
+          <FlowerParts
+            flowerType={flowerType}
+            position={modelOffset}
+            scale={scale}
+            onPetalProgress={(count, total) => onPetalProgress?.(objectId, count, total)}
+          />
         </Suspense>
       ) : (
         <Clone object={flower} position={modelOffset} scale={scale} castShadow receiveShadow dispose={null} />

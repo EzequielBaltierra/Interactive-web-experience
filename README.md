@@ -2,16 +2,17 @@
 
 An interactive 3D garden built with React, Vite, Three.js, React Three Fiber, Drei, and Rapier. This portfolio project explores a flower fortune experience through procedural scenery, model interaction, and petal physics.
 
-The current build is a garden prototype with visible developer controls. Question entry and the final fortune reveal are still to come.
+The current build opens behind a full-screen loading indicator that tracks the shared 3D asset queue and waits for both canvases to initialize before revealing the animated question-entry scene. It then transitions into the garden prototype with visible developer controls. Removing every petal reveals a placeholder answer: YES for an odd petal count, NO for even. The current ten-petal flower always produces NO.
 
 ## Try the garden
 
-1. Start in **Perspective / Main** and drag a flower upward. Release before its base clears the soil to let it settle back.
-2. Lift it clear to enter a close, top-down orbital view. Once the flower and camera settle, its complete model is replaced by a stem and ten separate petals.
-3. Click petals to detach them and watch them fall and collide. Dragging to orbit does not remove a petal; petal dragging is still planned.
-4. Return to **Perspective** to replant the complete flower and clear its fallen petals.
+1. Click the framed 3D text box, type a question, and press Enter or the arrow button. Its center panel uses cherry veneer and its outer frame uses rough wood. The question is retained in app state for the future final reveal.
+2. Start in **Perspective / Main** and drag a flower upward. Release before its base clears the soil to let it settle back.
+3. Lift it clear to enter a close, top-down orbital view. The camera takes a direct 0.65-second path while preserving its horizontal heading. Once the flower and camera settle, its complete model is replaced by a stem and ten separate petals.
+4. Click petals to detach them and watch them fall and collide. Each pick creates a separate screen-space label around the flower: YES on odd picks, NO on even picks. Labels rise and fade over 1.8 seconds; reduced-motion settings use a stationary fade. Dragging to orbit does not remove a petal; petal dragging is still planned.
+5. After the final petal is removed and its label fades, a simple YES/NO overlay appears. Return to **Perspective** to reset the count, labels, and flower. The developer return-to-question control also resets the inspection.
 
-Developer controls provide named camera views, orbital navigation, and a camera-follow pause. In Orbital mode, the bed and planted flowers can be selected as camera targets.
+Developer controls provide a question-scene skip, a return-to-question button, named camera views, orbital navigation, and a camera-follow pause. The skip and return buttons are included in Vite development mode. In Orbital mode, the bed and planted flowers can be selected as camera targets.
 
 ## Component map
 
@@ -19,13 +20,15 @@ Developer controls provide named camera views, orbital navigation, and a camera-
 src/components/
   GardenScene.jsx       Active scene, selection, and inspection state
   Testing.jsx           Isolated developer sandbox
+  question/             3D question prompt and entry transition
+  result/               Placeholder YES/NO answer after the last petal
   camera/               Camera rigging, developer controls, and named views
   garden/
     terrain/            Ground geometry, height sampling, shared dimensions
     vegetation/         Grass, trees, foliage, shared resources, and wind
     flowerbed/          Bed model assembly and texture mapping
     flowers/            Grid placement, movement, parts, and collisions
-    lighting/           Lights and the directional-light helper
+    lighting/           Garden scene lighting
   testing/              Sandbox wind adapter
 ```
 
@@ -60,7 +63,7 @@ Assets live in `public/assets/models/garden-bed/`, `public/assets/models/flowers
 
 ### Lighting and camera
 
-**Lighting** combines hemisphere light for sky/ground fill, ambient light, and a directional light with a 2048-square shadow map. **GardenScene** adds distance fog, axes, grid, and view gizmos. The current bright inspection lighting precedes the planned atmospheric presentation.
+**Lighting** combines hemisphere light for sky/ground fill, ambient light, and a directional light with a 2048-square shadow map. **GardenScene** adds distance fog without exposing grid, axes, light-direction, or view-gizmo helpers. The current bright inspection lighting precedes the planned atmospheric presentation.
 
 **CameraRigging** handles perspective following, orbital targets, and the flower-inspection transition. **cameraViews.js** stores named view offsets; **DevControls** renders the buttons. Camera buttons are disabled while digging or transitioning into inspection.
 
@@ -77,8 +80,8 @@ Wind changes rendered vertices, not collision geometry. Grass lighting normals a
 
 ## Remaining implementation
 
-- Add the question text box and connect it to flower selection.
-- Track removed/remaining petals and reveal a final answer based on petal count once the flower is bare; define the count-to-answer rule.
+- Connect the stored question to the final reveal and restart flow.
+- Replace the simple parity-based YES/NO placeholder with the finished result presentation.
 - Add updated, varying flower models with matching stems, petals, placement settings, and petal counts.
 - Extend click-to-remove petals into a deliberate dragging interaction.
 - Add selected-flower dimming/blur, a result screen, and a restart flow.
@@ -111,6 +114,7 @@ The automated tests in `tests/` were integrated with AI assistance as logic and 
 | [garden.test.mjs](tests/garden.test.mjs) | Terrain sampling, grounded model positions, terrain boundaries, grass coverage, and blade proportions. |
 | [gardenBed.test.mjs](tests/gardenBed.test.mjs) | Bed-part alignment, texture availability and EXR decoding, and resource cleanup without modifying cached assets. |
 | [flowerPicking.test.mjs](tests/flowerPicking.test.mjs) | Drag-height limits, clearance above soil, inspection positioning, and consistent movement across frame rates. |
+| [inspectionTransition.test.mjs](tests/inspectionTransition.test.mjs) | Straight camera motion, unchanged horizontal heading, top-down arrival, and frame-rate-independent completion. |
 | [flowerParts.test.mjs](tests/flowerParts.test.mjs) | Stem/petal alignment and simulated collisions between detached petals, the bed, and terrain. |
 | [vegetation.test.mjs](tests/vegetation.test.mjs) | Grass and foliage geometry, instanced batches, shared-resource cleanup, matching surface/shadow shader settings, and transform calculations. |
 

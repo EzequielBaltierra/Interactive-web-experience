@@ -4,7 +4,7 @@ import { useGLTF } from '@react-three/drei'
 import { RigidBody, useRapier } from '@react-three/rapier'
 import { createFlowerPart, flowerPartModels } from './flowerParts.js'
 
-function FlowerPart({ scene, name, removable = false }) {
+function FlowerPart({ scene, name, removable = false, onPicked }) {
   const bodyRef = useRef(null)
   const meshesRef = useRef(null)
   const removed = useRef(false)
@@ -39,6 +39,7 @@ function FlowerPart({ scene, name, removable = false }) {
     body.setLinvel({ x: center[0] / length * 0.12, y: -0.03, z: center[2] / length * 0.12 }, true)
     body.setAngvel({ x: 0.7, y: 0.25, z: -0.45 }, true)
     setDetached(true)
+    onPicked?.()
   }
 
   return (
@@ -63,9 +64,16 @@ function FlowerPart({ scene, name, removable = false }) {
   )
 }
 
-export default function FlowerParts({ flowerType, position, scale }) {
+export default function FlowerParts({ flowerType, position, scale, onPetalProgress }) {
   const models = flowerPartModels[flowerType]
   const loaded = useGLTF([models.stem, ...models.petals])
+  const pickedPetalCount = useRef(0)
+
+  const countPickedPetal = () => {
+    // Each FlowerPart guards against repeated clicks on an already detached petal.
+    pickedPetalCount.current += 1
+    onPetalProgress?.(pickedPetalCount.current, models.petals.length)
+  }
   return (
     <group position={position} scale={scale}>
       {loaded.map(({ scene }, index) => (
@@ -74,6 +82,7 @@ export default function FlowerParts({ flowerType, position, scale }) {
           scene={scene}
           name={index === 0 ? 'Stem1' : `Petal1_${index}`}
           removable={index > 0}
+          onPicked={countPickedPetal}
         />
       ))}
     </group>

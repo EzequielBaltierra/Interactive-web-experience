@@ -8,9 +8,15 @@ export default function DevControls({
   cameraMode,
   setCameraMode,
   disabled = false,
+  onReturnToQuestion,
 }) {
   return (
     <div className="scene-controls">
+      {import.meta.env.DEV && (
+        <button type="button" onClick={onReturnToQuestion} disabled={disabled}>
+          Return to question
+        </button>
+      )}
       <div className="camera-mode-controls" aria-label="Camera mode">
         <button
           type="button"
