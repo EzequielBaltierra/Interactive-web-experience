@@ -66,7 +66,7 @@ function QuestionBoxModels({ onActivate }) {
   const scale = Math.min(viewport.width * 0.005, viewport.height * 0.007)
 
   return (
-    <group rotation={[Math.PI / 2, 0, 0]} scale={scale}>
+    <group position={[viewport.width * 0.03, 0, 0]} rotation={[Math.PI / 2, 0, 0]} scale={scale}>
       {/* Center the authored model bounds at the viewport center. */}
       <group position={[0, -3, -0.5]}>
         <TexturedQuestionPart source={border.scene} textures={borderTextures} normalizedUvs={false} />
