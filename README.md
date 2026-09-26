@@ -1,4 +1,4 @@
-﻿# Interactive Web Experience
+﻿# Flower Fortunes
 
 An interactive 3D garden built with React, Vite, Three.js, React Three Fiber, Drei, and Rapier. This portfolio project explores a flower fortune experience through procedural scenery, model interaction, and petal physics.
 
