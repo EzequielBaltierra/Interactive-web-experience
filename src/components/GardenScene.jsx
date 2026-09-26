@@ -3,7 +3,6 @@ import { useRef, useState } from 'react'
 import { Physics } from '@react-three/rapier'
 import * as THREE from 'three'
 import CameraRigging from './camera/CameraRigging.jsx'
-import DevControls from './camera/DevControls.jsx'
 import Ground from './garden/terrain/Ground.jsx'
 import Grass from './garden/vegetation/Grass.jsx'
 import Trees, { Tree } from './garden/vegetation/Trees.jsx'
@@ -18,10 +17,8 @@ const DEFAULT_SELECTED_OBJECT = 'flowerbed'
 const TERRAIN_FOG_NEAR = 4
 const TERRAIN_FOG_COLOR = '#87CEEB'
 
-function GardenScene({ isQuestionActive = false, onReturnToQuestion, onReady }) {
-  const [view, setView] = useState('main')
+function GardenScene({ isQuestionActive = false, question = '', onAskAnotherQuestion, onReady }) {
   const [selectedObject, setSelectedObject] = useState(DEFAULT_SELECTED_OBJECT)
-  const [pauseCameraFollow, setPauseCameraFollow] = useState(false)
   const [cameraMode, setCameraMode] = useState('perspective')
   const [dragging, setDragging] = useState(false)
   const [pickedFlower, setPickedFlower] = useState(null)
@@ -40,16 +37,9 @@ function GardenScene({ isQuestionActive = false, onReturnToQuestion, onReady }) 
 
   const getSelectedObject = () => objectRefs.current[selectedObject] || null
 
-  const selectObject = (objectId) => {
-    if (cameraMode === 'perspective' || dragging || pickedFlower) return
-    setSelectedObject(objectId)
-    setCameraMode('orbital')
-  }
-
   const uprootFlower = (objectId, distance, focus) => {
     setSelectedObject(objectId)
     setPickedFlower({ id: objectId, distance, focus, moving: true, flowerArrived: false, pickedPetalCount: 0, totalPetals: 0, petalLabels: [] })
-    setView('top')
     setCameraMode('orbital')
   }
 
@@ -61,15 +51,6 @@ function GardenScene({ isQuestionActive = false, onReturnToQuestion, onReady }) 
   const finishInspectionTransition = (objectId) => {
     setPickedFlower((current) => current?.id === objectId && current.moving
       ? { ...current, moving: false } : current)
-  }
-
-  const changeCameraMode = (mode) => {
-    if (mode === 'perspective') {
-      setPickedFlower(null)
-      setSelectedObject(DEFAULT_SELECTED_OBJECT)
-      setView('main')
-    }
-    setCameraMode(mode)
   }
 
   const recordPetalProgress = (objectId, pickedPetalCount, totalPetals) => {
@@ -87,26 +68,16 @@ function GardenScene({ isQuestionActive = false, onReturnToQuestion, onReady }) 
     } : current)
   }
 
-  const returnToQuestion = () => {
-    changeCameraMode('perspective')
-    setPauseCameraFollow(false)
-    onReturnToQuestion?.()
+  const restartExperience = () => {
+    setPickedFlower(null)
+    setSelectedObject(DEFAULT_SELECTED_OBJECT)
+    setCameraMode('perspective')
+    setDragging(false)
+    onAskAnotherQuestion?.()
   }
 
   return (
     <div className="scene">
-      {!isQuestionActive && (
-        <DevControls
-          view={view}
-          setView={setView}
-          pauseCameraFollow={pauseCameraFollow}
-          setPauseCameraFollow={setPauseCameraFollow}
-          cameraMode={cameraMode}
-          setCameraMode={changeCameraMode}
-          disabled={dragging || pickedFlower?.moving}
-          onReturnToQuestion={returnToQuestion}
-        />
-      )}
       <Canvas
         dpr={[1, 1.5]}
         shadows={{ type: THREE.PCFShadowMap }}
@@ -124,9 +95,8 @@ function GardenScene({ isQuestionActive = false, onReturnToQuestion, onReady }) 
           <GardenBed
             objectRef={(node) => setObjectRef('flowerbed', node)}
             setObjectRef={setObjectRef}
-            onSelect={selectObject}
             picking={{
-              canDig: !isQuestionActive && cameraMode === 'perspective' && view === 'main' && !pickedFlower && !dragging,
+              canDig: !isQuestionActive && cameraMode === 'perspective' && !pickedFlower && !dragging,
               pickedFlower,
               onDragChange: setDragging,
               onUproot: uprootFlower,
@@ -141,9 +111,9 @@ function GardenScene({ isQuestionActive = false, onReturnToQuestion, onReady }) 
           />
         </Physics>
         <CameraRigging
-          view={view}
+          view="main"
           getSelectedObject={getSelectedObject}
-          pauseCameraFollow={pauseCameraFollow || dragging}
+          pauseCameraFollow={dragging}
           cameraMode={cameraMode}
           pickedFlower={pickedFlower}
           onInspectionReady={finishInspectionTransition}
@@ -157,7 +127,9 @@ function GardenScene({ isQuestionActive = false, onReturnToQuestion, onReady }) 
         />
       )}
       {/* Let the final pick's label finish before presenting the lasting answer. */}
-      {!isQuestionActive && answer && pickedFlower.petalLabels.length === 0 && <FinalAnswer answer={answer} />}
+      {!isQuestionActive && answer && pickedFlower.petalLabels.length === 0 && (
+        <FinalAnswer question={question} answer={answer} onRestart={restartExperience} />
+      )}
     </div>
   )
 }

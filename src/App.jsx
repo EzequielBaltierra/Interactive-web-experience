@@ -56,21 +56,23 @@ function App() {
     setIsAskingQuestion(false)
   }
 
-  const skipQuestion = () => setIsAskingQuestion(false)
+  const askAnotherQuestion = () => {
+    setQuestion('')
+    setIsAskingQuestion(true)
+  }
 
   return (
     <main className="app">
       <GardenScene
         isQuestionActive={isAskingQuestion}
         question={question}
-        onReturnToQuestion={() => setIsAskingQuestion(true)}
+        onAskAnotherQuestion={askAnotherQuestion}
         onReady={() => setGardenCanvasReady(true)}
       />
       {isAskingQuestion && (
         <QuestionScene
           initialQuestion={question}
           onComplete={saveQuestion}
-          onSkip={skipQuestion}
           onReady={() => setQuestionCanvasReady(true)}
           canEnter={isInitialLoadComplete}
         />

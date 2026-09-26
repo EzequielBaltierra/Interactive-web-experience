@@ -84,7 +84,7 @@ function QuestionBoxModels({ onActivate }) {
   )
 }
 
-export default function QuestionScene({ initialQuestion = '', onComplete, onSkip, onReady, canEnter = true }) {
+export default function QuestionScene({ initialQuestion = '', onComplete, onReady, canEnter = true }) {
   const [draft, setDraft] = useState(initialQuestion)
   const [phase, setPhase] = useState('before-entry')
   const inputRef = useRef(null)
@@ -117,12 +117,6 @@ export default function QuestionScene({ initialQuestion = '', onComplete, onSkip
   return (
     <section className="question-scene" data-phase={phase} aria-labelledby="question-title">
       <div className="question-blue-veil" aria-hidden="true" />
-      {import.meta.env.DEV && (
-        <aside className="question-dev-controls" aria-label="Developer controls">
-          <span>DEV</span>
-          <button type="button" onClick={onSkip}>Skip to garden</button>
-        </aside>
-      )}
       <div className="question-content">
         <header className="question-copy">
           <h1 id="question-title">Enter your yes or no question</h1>

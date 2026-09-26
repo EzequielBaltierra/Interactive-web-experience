@@ -7,4 +7,5 @@ export const viewOffsets = {
   top: new Vector3(0, 8, 0),
   middle: new Vector3(4, 2.8, 3),
   main: new Vector3(-1.2, 1.1, -1.35),
+  test: new Vector3(.3, 2.5, -1),
 }

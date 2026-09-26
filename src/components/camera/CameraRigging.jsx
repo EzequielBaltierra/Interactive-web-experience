@@ -1,10 +1,13 @@
-import { useFrame } from '@react-three/fiber'
+import { useFrame, useThree } from '@react-three/fiber'
 import {
+  OrthographicCamera,
   OrbitControls,
   PerspectiveCamera,
 } from '@react-three/drei'
 import { useRef } from 'react'
 import * as THREE from 'three'
+import { TERRAIN_FOG_FAR } from '../garden/terrain/gardenConfig.js'
+import { CAMERA_FOV, getPerspectiveMatchedOrthographicZoom } from './cameraProjection.js'
 import { viewOffsets } from './cameraViews.js'
 import { advanceInspectionTransition, createInspectionTransition } from './inspectionTransition.js'
 
@@ -18,6 +21,7 @@ function clampHorizontalPosition(position) {
 }
 
 export default function CameraRigging({ view, getSelectedObject, pauseCameraFollow, cameraMode, pickedFlower, onInspectionReady }) {
+  const viewportHeight = useThree((state) => state.size.height)
   const orbitControlsRef = useRef(null)
   const targetLookAt = useRef(new THREE.Vector3())
   const objectWorldPosition = useRef(new THREE.Vector3())
@@ -28,12 +32,18 @@ export default function CameraRigging({ view, getSelectedObject, pauseCameraFoll
   const previousSelectedObject = useRef(null)
   const previousView = useRef(view)
   const previousCameraMode = useRef(cameraMode)
+  const activeViewOffset = viewOffsets[view] || viewOffsets.front
+  const orthographicZoom = getPerspectiveMatchedOrthographicZoom(activeViewOffset, viewportHeight)
+  // Orthographic rays do not widen away from the camera. Allow the overview
+  // views to render the full fog-visible scene, including geometry beside or
+  // slightly behind their camera position. Keep the close test view clipped.
+  const orthographicNear = view === 'test' ? CAMERA_NEAR_CLIP : -TERRAIN_FOG_FAR
 
   useFrame((state, delta) => {
     const alpha = Math.min(delta * 4, 1)
     const selectedObject = getSelectedObject?.()
 
-    if (cameraMode === 'perspective') {
+    if (cameraMode !== 'orbital') {
       targetLookAt.current.set(0, 0, 0)
     } else if (selectedObject) {
       selectedObject.getWorldPosition(objectWorldPosition.current)
@@ -115,13 +125,23 @@ export default function CameraRigging({ view, getSelectedObject, pauseCameraFoll
 
   return (
     <>
-      <PerspectiveCamera
-        makeDefault
-        position={viewOffsets.main.toArray()}
-        fov={75}
-        near={CAMERA_NEAR_CLIP}
-        far={1000}
-      />
+      {cameraMode === 'orthographic' ? (
+        <OrthographicCamera
+          makeDefault
+          position={activeViewOffset.toArray()}
+          zoom={orthographicZoom}
+          near={orthographicNear}
+          far={1000}
+        />
+      ) : (
+        <PerspectiveCamera
+          makeDefault
+          position={activeViewOffset.toArray()}
+          fov={CAMERA_FOV}
+          near={CAMERA_NEAR_CLIP}
+          far={1000}
+        />
+      )}
       <OrbitControls
         ref={orbitControlsRef}
         enabled={cameraMode === 'orbital' && !pickedFlower?.moving}
